@@ -13,6 +13,6 @@
     }
   },
   "ConnectionStrings": {
-    "MySqlConnection": "server=LTHIENDUC\\SQLEXPRESS;Integrated Security=True;database=samplenetcoredb;"
+    "ConnectionString": "server=LTHIENDUC\\SQLEXPRESS;database=samplenetcoredb;Integrated Security=True;"
   }
 }
