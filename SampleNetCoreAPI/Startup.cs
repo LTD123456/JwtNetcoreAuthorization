@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DataAccess.EF;
+using DataAccess.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +28,12 @@ namespace SampleNetCoreAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            var sqlConnectionString = Configuration.GetConnectionString("ConnectionString");
+            services.AddDbContext<DataAccessDbContext>(options => options.UseSqlServer(sqlConnectionString));
+            #region Add Repository
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            #endregion
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
