@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Text;
 using System.Threading.Tasks;
 using DataAccess.EF;
 using DataAccess.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +16,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using SampleNetCoreAPI.Config;
 
 namespace SampleNetCoreAPI
 {
@@ -33,6 +38,31 @@ namespace SampleNetCoreAPI
             #region Add Repository
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             #endregion
+
+            #region Add Method Authentication
+            services.AddAuthentication(o =>
+            {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.Audience = Configuration["TokenAuthentication:siteUrl"];
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(AppConfigKey.SecretKey)),
+
+                    ValidateIssuer = true,
+                    ValidIssuer = Configuration["TokenAuthentication:siteUrl"],
+
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["TokenAuthentication:siteUrl"],
+
+                    ValidateLifetime = true,
+                };
+            });
+            #endregion
             services.AddMvc();
         }
 
@@ -51,6 +81,7 @@ namespace SampleNetCoreAPI
 
             app.UseHttpsRedirection();
             app.UseMvc();
+            app.UseAuthentication();
         }
     }
 }
